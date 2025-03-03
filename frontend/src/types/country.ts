@@ -1,6 +1,6 @@
 export interface CountryName {
     common: string;
-    offical: string;
+    official: string;
     nativeName: Record<string, {official: string, common: string}>;
 }
 

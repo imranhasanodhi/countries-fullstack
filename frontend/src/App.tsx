@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthRedirect } from "./components/Auth/AuthRedirect";
 import { Login } from "./components/Auth/Login";
 import { ProtectedRoute } from "./components/Auth/ProtectedRoute";
+import CountriesList from "./components/CountriesList";
+import CountryDetail from "./components/CountryDetail";
 import { Navigation } from "./components/Navigation";
 import ProtectedTestData from "./components/ProtectedTestData";
 import { TestData } from "./components/TestData";
@@ -26,6 +28,8 @@ function App() {
                 }
               />
               <Route path="/test" element={<TestData />} />
+              <Route path="/countries" element={<CountriesList />} />
+              <Route path="/countries/:name" element={<CountryDetail />} />
               <Route
                 path="/protected"
                 element={
