@@ -1,5 +1,22 @@
-import { Box, CircularProgress, Grid, Typography } from "@mui/material";
-import { useEffect } from "react";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+  Box,
+  Chip,
+  CircularProgress,
+  Fade,
+  FormControl,
+  Grid,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
   fetchAllCountries,
@@ -15,11 +32,58 @@ const CountriesList = () => {
   const loading = useAppSelector(selectCountriesLoading);
   const error = useAppSelector(selectCountriesError);
 
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [filteredCountries, setFilteredCountries] = useState(countries);
+
+  // Get unique regions for filter dropdown
+  const regions = [
+    ...new Set(countries.map((country) => country.region)),
+  ].sort();
+
   useEffect(() => {
     if (countries.length === 0) {
       dispatch(fetchAllCountries());
     }
   }, [dispatch, countries.length]);
+
+  // Filter countries based on search term and selected region
+  useEffect(() => {
+    let result = countries;
+
+    if (searchTerm) {
+      result = result.filter(
+        (country) =>
+          country.name.common
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (country.capital &&
+            country.capital[0]
+              ?.toLowerCase()
+              .includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    if (selectedRegion) {
+      result = result.filter((country) => country.region === selectedRegion);
+    }
+
+    setFilteredCountries(result);
+  }, [countries, searchTerm, selectedRegion]);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleRegionChange = (event: SelectChangeEvent<string>) => {
+    setSelectedRegion(event.target.value);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedRegion("");
+  };
 
   if (loading) {
     return (
@@ -38,18 +102,115 @@ const CountriesList = () => {
   }
 
   return (
-    <Box p={4}>
-      <Typography variant="h4" gutterBottom>
-        Countries of the World
-      </Typography>
-      <Grid container spacing={3}>
-        {countries.map((country) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={country.cca3}>
-            <CountryCard country={country} />
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
+    <Fade in={true} timeout={800}>
+      <Box p={4}>
+        <Typography variant="h4" gutterBottom>
+          Countries of the World
+        </Typography>
+
+        <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 2,
+              mb: 2,
+            }}
+          >
+            <TextField
+              fullWidth
+              label="Search countries"
+              variant="outlined"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <FormControl variant="outlined" sx={{ minWidth: 200 }}>
+              <InputLabel id="region-select-label">Filter by Region</InputLabel>
+              <Select
+                labelId="region-select-label"
+                value={selectedRegion}
+                onChange={handleRegionChange}
+                label="Filter by Region"
+                startAdornment={
+                  <InputAdornment position="start">
+                    <FilterListIcon />
+                  </InputAdornment>
+                }
+              >
+                <MenuItem value="">
+                  <em>All Regions</em>
+                </MenuItem>
+                {regions.map((region) => (
+                  <MenuItem key={region} value={region}>
+                    {region}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {(searchTerm || selectedRegion) && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography variant="body2">Active filters:</Typography>
+              {searchTerm && (
+                <Chip
+                  label={`Search: ${searchTerm}`}
+                  onDelete={() => setSearchTerm("")}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+              )}
+              {selectedRegion && (
+                <Chip
+                  label={`Region: ${selectedRegion}`}
+                  onDelete={() => setSelectedRegion("")}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+              )}
+              <Chip
+                label="Clear all"
+                onClick={clearFilters}
+                size="small"
+                color="secondary"
+              />
+            </Box>
+          )}
+        </Paper>
+
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Showing {filteredCountries.length} of {countries.length} countries
+          </Typography>
+        </Box>
+
+        <Grid container spacing={3}>
+          {filteredCountries.map((country, index) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={country.cca3}>
+              <CountryCard country={country} key={index} />
+            </Grid>
+          ))}
+        </Grid>
+
+        {filteredCountries.length === 0 && (
+          <Box sx={{ mt: 4, textAlign: "center" }}>
+            <Typography variant="h6" color="text.secondary">
+              No countries found matching your criteria
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Fade>
   );
 };
 
