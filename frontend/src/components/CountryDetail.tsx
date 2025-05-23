@@ -12,7 +12,9 @@ import {
   CardContent,
   CardMedia,
   CircularProgress,
+  Divider,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -59,7 +61,7 @@ const CountryDetail = () => {
         const data = await weatherApi.getWeatherByCity(country.capital[0]);
         setWeatherData(data as unknown as WeatherData);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setWeatherError("Failed to fetch weather data");
       } finally {
         setWeatherLoading(false);
@@ -69,15 +71,38 @@ const CountryDetail = () => {
   }, [country]);
 
   if (loading) {
-    return <CircularProgress />;
+    return (
+      <Box
+        sx={{
+          height: "60vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <CircularProgress size={48} />
+      </Box>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography color="error" variant="h6">
+          Error: {error}
+        </Typography>
+      </Box>
+    );
   }
 
   if (!country) {
-    return <div>Country not found</div>;
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography variant="h6" color="text.secondary">
+          Country not found.
+        </Typography>
+      </Box>
+    );
   }
 
   const getCurrencies = () => {
@@ -90,63 +115,154 @@ const CountryDetail = () => {
   };
 
   return (
-    <Box p={4}>
+    <Box p={{ xs: 2, md: 4 }} maxWidth={800} mx="auto">
       <Button
         startIcon={<ArrowBack />}
         onClick={() => navigate("/countries")}
-        sx={{ mb: 4 }}
+        sx={{ mb: 3 }}
+        variant="outlined"
+        color="primary"
       >
         Back to Countries
       </Button>
-      <Card>
+
+      <Card
+        sx={{
+          borderRadius: 3,
+          boxShadow:
+            "0 4px 12px rgba(0,0,0,0.1), 0 1px 6px rgba(0,0,0,0.06)",
+          overflow: "hidden",
+        }}
+      >
         <CardMedia
           component="img"
           height="300"
           image={country.flags.png}
           alt={country.flags.alt || `Flag of ${country.name.common}`}
+          sx={{ objectFit: "cover" }}
         />
-        <CardContent>
-          <Typography variant="h4" gutterBottom>
+
+        <CardContent sx={{ px: 4, py: 3 }}>
+          <Typography
+            variant="h3"
+            component="h1"
+            fontWeight={700}
+            gutterBottom
+            noWrap
+            title={country.name.common}
+          >
             {country.name.common}
           </Typography>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            gutterBottom
+            sx={{ fontStyle: "italic" }}
+          >
             {country.name.official}
           </Typography>
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2 }}>
-            <Public color="action" />
-            <Typography variant="body1">
-              Region: {country.region}
-              {country.subregion && ` (${country.subregion})`}
-            </Typography>
+
+          <Divider sx={{ my: 2 }} />
+
+          {/* Region & Subregion */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              mb: 1.5,
+              color: "text.secondary",
+            }}
+          >
+            <Public fontSize="medium" />
+            <Tooltip title={country.subregion || ""}>
+              <Typography variant="body1" noWrap>
+                <strong>Region:</strong> {country.region}
+                {country.subregion && ` (${country.subregion})`}
+              </Typography>
+            </Tooltip>
           </Box>
+
+          {/* Capital */}
           {country.capital && (
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2 }}>
-              <LocationCity color="action" />
-              <Typography variant="body1">
-                Capital: {country.capital.join(", ")}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                mb: 1.5,
+                color: "text.secondary",
+              }}
+            >
+              <LocationCity fontSize="medium" />
+              <Typography variant="body1" noWrap>
+                <strong>Capital:</strong> {country.capital.join(", ")}
               </Typography>
             </Box>
           )}
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2 }}>
-            <People color="action" />
-            <Typography variant="body1">
-              Population: {country.population.toLocaleString()}
+
+          {/* Population */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              mb: 1.5,
+              color: "text.secondary",
+            }}
+          >
+            <People fontSize="medium" />
+            <Typography variant="body1" noWrap>
+              <strong>Population:</strong> {country.population.toLocaleString()}
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <Payment color="action" />
-            <Typography variant="body1">
-              Currencies: {getCurrencies()}
-            </Typography>
+
+          {/* Currencies */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: "text.secondary",
+              wordBreak: "break-word",
+            }}
+          >
+            <Payment fontSize="medium" />
+            <Tooltip title={getCurrencies()}>
+              <Typography variant="body1" noWrap>
+                <strong>Currencies:</strong> {getCurrencies()}
+              </Typography>
+            </Tooltip>
           </Box>
         </CardContent>
       </Card>
-      {weatherData && (
-        <WeatherInfo
-          weatherData={weatherData}
-          loading={weatherLoading}
-          error={weatherError}
-        />
+
+      {weatherLoading && (
+        <Box
+          sx={{
+            mt: 4,
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <CircularProgress size={36} />
+        </Box>
+      )}
+
+      {weatherData && !weatherLoading && (
+        <Box mt={4}>
+          <WeatherInfo
+            weatherData={weatherData}
+            loading={weatherLoading}
+            error={weatherError}
+          />
+        </Box>
+      )}
+
+      {weatherError && (
+        <Typography color="error" mt={2}>
+          {weatherError}
+        </Typography>
       )}
     </Box>
   );

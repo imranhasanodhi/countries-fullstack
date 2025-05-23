@@ -10,6 +10,8 @@ import {
   CardContent,
   CardMedia,
   Typography,
+  Divider,
+  Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Country } from "../types/country";
@@ -31,52 +33,103 @@ export const CountryCard = ({ country }: CountryCardProps) => {
   };
 
   return (
-    <Card sx={{ maxWidth: 345, height: "100%" }}>
-      <CardActionArea onClick={() => navigate(`/countries/${urlName}`)}>
+    <Card
+      sx={{
+        maxWidth: 345,
+        height: "100%",
+        borderRadius: 3,
+        boxShadow:
+          "0 2px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08)",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        "&:hover": {
+          transform: "translateY(-6px)",
+          boxShadow:
+            "0 6px 20px rgba(0,0,0,0.16), 0 8px 24px rgba(0,0,0,0.12)",
+        },
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <CardActionArea
+        onClick={() => navigate(`/countries/${urlName}`)}
+        sx={{ flexGrow: 1 }}
+      >
         <CardMedia
           component="img"
-          height="140"
+          height="180"
           image={country.flags.png}
           alt={country.flags.alt || `Flag of ${country.name.common}`}
+          sx={{ objectFit: "cover", borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
         />
-        <CardContent>
-          <Typography gutterBottom variant="h5" component="div">
+        <CardContent sx={{ px: 3, pt: 2 }}>
+          <Typography
+            gutterBottom
+            variant="h6"
+            component="h2"
+            noWrap
+            sx={{ fontWeight: "600" }}
+            title={country.name.common}
+          >
             {country.name.common}
           </Typography>
 
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 1 }}>
-            <PublicIcon color="action" fontSize="small" />
-            <Typography variant="body2" color="text.secondary">
-              {country.region}
-              {country.subregion && ` (${country.subregion})`}
-            </Typography>
-          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              mt: 1,
+              color: "text.secondary",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <PublicIcon fontSize="small" />
+              <Tooltip title={country.subregion || ""}>
+                <Typography variant="body2" noWrap>
+                  {country.region}
+                  {country.subregion && ` (${country.subregion})`}
+                </Typography>
+              </Tooltip>
+            </Box>
 
-          {country.capital && (
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 1 }}>
-              <LocationCityIcon color="action" fontSize="small" />
-              <Typography variant="body2" color="text.secondary">
-                {country.capital[0]}
+            {country.capital && (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <LocationCityIcon fontSize="small" />
+                <Typography variant="body2" noWrap>
+                  {country.capital[0]}
+                </Typography>
+              </Box>
+            )}
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <PeopleIcon fontSize="small" />
+              <Typography variant="body2" noWrap>
+                {country.population.toLocaleString()}
               </Typography>
             </Box>
-          )}
 
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 1 }}>
-            <PeopleIcon color="action" fontSize="small" />
-            <Typography variant="body2" color="text.secondary">
-              {country.population.toLocaleString()}
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <Payments color="action" fontSize="small" />
-            <Typography variant="body2" color="text.secondary" noWrap>
-              {getCurrencies()}
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Payments fontSize="small" />
+              <Tooltip title={getCurrencies()}>
+                <Typography variant="body2" noWrap>
+                  {getCurrencies()}
+                </Typography>
+              </Tooltip>
+            </Box>
           </Box>
         </CardContent>
       </CardActionArea>
-      <CardActions sx={{ mt: "auto", justifyContent: "flex-end" }}>
+
+      <Divider sx={{ mx: 2 }} />
+
+      <CardActions
+        sx={{
+          justifyContent: "flex-end",
+          px: 2,
+          py: 1,
+          backgroundColor: "background.paper",
+        }}
+      >
         <FavoriteButton country={country} />
       </CardActions>
     </Card>
